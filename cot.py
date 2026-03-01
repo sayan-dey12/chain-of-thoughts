@@ -6,8 +6,8 @@ import json
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("GEMINI_API_KEY"),
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1"
 )
 
 SYSTEM_PROMPT = """
@@ -21,14 +21,6 @@ SYSTEM_PROMPT = """
     - Only run one step at a time.
     - The sequence of steps is START (where user gives an input), PLAN (That can be multiple times) and finally OUTPUT (which is going to the displayed to the user).
     
-    IMPORTANT EXECUTION RULES:
-    - You MUST return ONLY ONE JSON object.
-    - NEVER return an array.
-    - NEVER return multiple steps.
-    - After generating ONE step, STOP.
-    - Wait for the next user/system message before continuing.
-    - Do NOT predict future steps.
-    - Do NOT generate OUTPUT unless explicitly asked to continue.
 
     Output JSON Format:
     { "step": "START" | "PLAN" | "OUTPUT", "content": "string" }
@@ -59,7 +51,7 @@ message_history.append({"role": "user", "content": user_query})
 
 while(True):
     response = client.chat.completions.create(
-        model="gemini-2.5-flash-lite",
+        model="llama-3.1-8b-instant",
         response_format={"type": "json_object"},
         messages=message_history
     )
@@ -79,14 +71,10 @@ while(True):
     elif parsed_content.get("step") == "PLAN":
         print("🧠 :" , parsed_content.get("content"))
         continue
-    elif parsed_content.get("step") == "Output":
+    elif parsed_content.get("step") == "OUTPUT":
         print("🤖 :" , parsed_content.get("content"))
         break
     
-    message_history.append({
-        "role": "user",
-        "content": "Continue to next step. Follow rules strictly."
-    })
     
 print("\n\n\n")
     
